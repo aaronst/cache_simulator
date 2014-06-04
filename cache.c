@@ -6,6 +6,7 @@
 typedef struct {
 	int valid;
 	int tag;
+	int age;
 } block;
 
 typedef struct {
@@ -39,37 +40,67 @@ void initialize_cache(cache_config cc) {
 cache_result access_cache(unsigned int byte_address) {
 	cache_result result;
 
-	/* Do work here. */	
-	unsigned int blockOffset = byte_address % config.associativity;
+	/* Do work here. */
+	int i;
 
-	unsigned int indexBits = (unsigned int) log(numberOfRows) / log(2) + 1;
+	double byteBits = log(config.word_size) / log(2);
+	int byteB = byteBits;
 
-	unsigned int index;
-	unsigned int givenTag;
-	if (config.associativity > 1) {
-		index = (byte_address >> (config.associativity / 2)) % numberOfRows;
-		givenTag = byte_address >> ((config.associativity / 2) + indexBits);
-	} else {
-		index = byte_address % numberOfRows;
-		givenTag = byte_address >> indexBits;
+	double blockBits = log(config.block_size) / log(2);
+	int blockB;
+
+	double indexBits = log(numberOfRows) / log(2);
+	int iB = indexBits;
+
+	unsigned int byteOffset = byte_address % byteB;
+	unsigned int blockOffset = (byte_address >> byteB) % config.associativity;
+
+	printf("Byte Bits:   %d\n", byteB);
+	printf("Block bits:  %d\n", blockB);
+	printf("Index Bits:  %d\n", iB);
+
+	unsigned int index = (byte_address >> (byteB + blockB)) % numberOfRows;
+	unsigned int givenTag = byte_address >> (byteB + blockB + iB);
+
+	block currentBlock;
+
+	char hit = 0;
+
+	for (i = 0; i < config.associativity; i++) {
+		currentBlock = c.blocks[index][i];
+		if (givenTag == currentBlock.tag && currentBlock.valid == 1) {
+			hit = 1;
+			break;
+		}
 	}
 
-	block currentBlock = c.blocks[index][blockOffset];
+	block oldestBlock = c.blocks[index][0];
+	int oldestBlockIndex = 0;
+	int loaded = 0;
 
-	unsigned int currentTag = currentBlock.tag;
-
-	char hit;
-	if (givenTag == currentTag && currentBlock.valid == 1) {
-		hit = 1;
-	} else {
-		hit = 0;
-		c.blocks[index][blockOffset].tag = givenTag;
-		c.blocks[index][blockOffset].valid = 1;
+	if (hit == 0) {
+		for (i = 0; i < config.associativity; i++) {
+			if (c.blocks[index][i].valid == 0) {
+				c.blocks[index][i].tag = givenTag;
+				c.blocks[index][i].valid = 1;
+				loaded = 1;
+				break;
+			} else {
+				if (c.blocks[index][i].age > oldestBlock.age) {
+					oldestBlock = c.blocks[index][i];
+					oldestBlockIndex = i;
+				}
+			}
+		}
+		if (loaded == 0) {
+			c.blocks[index][oldestBlockIndex].tag = givenTag;
+			c.blocks[index][oldestBlockIndex].age = 0;
+		}
 	}
 
-	result.block_address = blockOffset;
+	result.block_address = byte_address / (config.block_size * config.word_size);
 	result.index = index;
-	result.tag = currentTag;
+	result.tag = givenTag;
 	result.hit = hit;
 	return result;
 }
