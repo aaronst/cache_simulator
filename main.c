@@ -11,7 +11,7 @@ static struct {
                    {{10, 2, 1, 1, 8}, {8, 4, 8, 12, 4, 513, 0, 515, 12}}, /* Figure 5.14, with omitted cache parameters filled in. */
                    {{32, 4, 4, 1, 1024}, {0, 1024, 2048, 5120, 1024, 98304, 0, 2048, 1024}}}; /* Figure 5.18 */
 
-#define SIMULATION_TO_RUN 0
+#define SIMULATION_TO_RUN 1
 
 int main(int argc, char* argv[]) {
 	cache_result result;
@@ -30,12 +30,12 @@ int main(int argc, char* argv[]) {
 
 	initialize_cache(simulations[SIMULATION_TO_RUN].config);
 
-	/*for (i = 0; i < 9; i++) {
+	for (i = 0; i < 9; i++) {
 		result = access_cache(simulations[SIMULATION_TO_RUN].addresses[i]);
 		printf("Byte addr: %u  -->  Block addr: %u  Index: %u  Tag: %u  Hit: %d\n",
 				simulations[SIMULATION_TO_RUN].addresses[i], result.block_address,
 				result.index, result.tag, (int)result.hit);
-	}*/
+	}
 
 	return EXIT_SUCCESS;
 }
