@@ -11,7 +11,7 @@ static struct {
                    {{10, 2, 1, 1, 8}, {8, 4, 8, 12, 4, 513, 0, 515, 12}}, /* Figure 5.14, with omitted cache parameters filled in. */
                    {{32, 4, 4, 1, 1024}, {0, 1024, 2048, 5120, 1024, 98304, 0, 2048, 1024}}}; /* Figure 5.18 */
 
-#define SIMULATION_TO_RUN 3
+#define SIMULATION_TO_RUN 4
 
 int main(int argc, char* argv[]) {
 	cache_result result;

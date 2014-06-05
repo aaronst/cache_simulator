@@ -43,24 +43,27 @@ cache_result access_cache(unsigned int byte_address) {
 	/* Do work here. */
 	int i;
 
-	double byteBits = log(config.word_size) / log(2);
-	int byteB = byteBits;
+	unsigned int wordSize = config.word_size;
+	unsigned int byteBits = 0;
+	while (wordSize >>= 1) ++byteBits;
 
-	double blockBits = log(config.block_size) / log(2);
-	int blockB;
+	unsigned int blockSize = config.block_size;
+	unsigned int blockBits = 0;
+	while (blockSize >>= 1) ++blockBits;
 
-	double indexBits = log(numberOfRows) / log(2);
-	int iB = indexBits;
+	unsigned int cacheSize = numberOfRows;
+	unsigned int indexBits = 0;
+	while (cacheSize >>= 1) ++indexBits;
 
-	unsigned int byteOffset = byte_address % byteB;
-	unsigned int blockOffset = (byte_address >> byteB) % config.associativity;
+	//unsigned int byteOffset = byte_address % byteBits;
+	long blockOffset = (byte_address >> byteBits) % config.associativity;
 
-	printf("Byte Bits:   %d\n", byteB);
-	printf("Block bits:  %d\n", blockB);
-	printf("Index Bits:  %d\n", iB);
+	printf("Byte Bits:   %d\n", byteBits);
+	printf("Block bits:  %d\n", blockBits);
+	printf("Index Bits:  %d\n", indexBits);
 
-	unsigned int index = (byte_address >> (byteB + blockB)) % numberOfRows;
-	unsigned int givenTag = byte_address >> (byteB + blockB + iB);
+	unsigned int index = (byte_address >> (byteBits + blockBits)) % numberOfRows;
+	unsigned int givenTag = byte_address >> (byteBits + blockBits + indexBits);
 
 	block currentBlock;
 
@@ -70,6 +73,7 @@ cache_result access_cache(unsigned int byte_address) {
 		currentBlock = c.blocks[index][i];
 		if (givenTag == currentBlock.tag && currentBlock.valid == 1) {
 			hit = 1;
+			c.blocks[index][i].age = 0;
 			break;
 		}
 	}
@@ -98,7 +102,13 @@ cache_result access_cache(unsigned int byte_address) {
 		}
 	}
 
-	result.block_address = byte_address / (config.block_size * config.word_size);
+	for (i = 0; i < config.associativity; i++) {
+		if (c.blocks[index][i].valid == 1) {
+			c.blocks[index][i].age++;
+		}
+	}
+
+	result.block_address = (index * config.associativity) + blockOffset;
 	result.index = index;
 	result.tag = givenTag;
 	result.hit = hit;
