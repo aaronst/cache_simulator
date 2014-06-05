@@ -1,3 +1,10 @@
+/*
+ * Aaron Stephens & Ben Foster
+ * Homework 5
+ * TCSS 372
+ * 6/4/2014
+ */
+
 #ifndef _CACHE_H_
 #define _CACHE_H_
 

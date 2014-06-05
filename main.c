@@ -1,3 +1,10 @@
+/*
+ * Aaron Stephens & Ben Foster
+ * Homework 5
+ * TCSS 372
+ * 6/4/2014
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "cache.h"
